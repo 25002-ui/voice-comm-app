@@ -3,7 +3,9 @@
 スマートフォンのブラウザ(横画面)で動作する、6ボタンの音声コミュニケーション支援アプリです。
 インストール不要。GitHub Pagesでそのまま公開できます。
 
-## ファイル構
+## ファイル構成
+
+
 ## 公開方法(GitHub Pages)
 
 1. このリポジトリを GitHub にプッシュする。
@@ -35,7 +37,7 @@
 発話時間をほぼ維持したままピッチのみを変化させています。
 
 もし将来的により高品質なピッチシフトが必要になった場合は、`js/app.js` 内の
-`pitchShiftBuffer` 関数を `soundtouchjs`(`https://cdn.jsdelivr.net/npm/soundtouchjs/+esm`
+`pitchShiftBuffer` 関数を `soundtouchjs`(例: `https://cdn.jsdelivr.net/npm/soundtouchjs/+esm`
 を `import()` する形)に差し替えることで対応可能です。差し替える場合は事前に
 実機(iOS Safari / Android Chrome)での動作確認をお願いします。
 
