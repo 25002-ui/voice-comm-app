@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#7a0f0f">
+<title>音声コミュニケーションアプリ</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="antenna" aria-hidden="true"></div>
+
+    <div class="button-grid">
+      <button class="btn btn-top" id="btn-sun" aria-label="おはようを再生">
+        <img src="assets/icons/sun.webp" alt="" draggable="false">
+      </button>
+      <button class="btn btn-top" id="btn-hand" aria-label="おつかれを再生">
+        <img src="assets/icons/hand.webp" alt="" draggable="false">
+      </button>
+      <button class="btn btn-top" id="btn-finger" aria-label="これ見てを再生">
+        <img src="assets/icons/finger.webp" alt="" draggable="false">
+      </button>
+
+      <button class="btn btn-bottom" id="btn-1" data-effect="low" aria-label="低い声 録音または再生">
+        <img src="assets/icons/1.webp" alt="" draggable="false">
+      </button>
+      <button class="btn btn-bottom" id="btn-2" data-effect="high" aria-label="高い声 録音または再生">
+        <img src="assets/icons/2.webp" alt="" draggable="false">
+      </button>
+      <button class="btn btn-bottom" id="btn-3" data-effect="robot" aria-label="ロボット声 録音または再生">
+        <img src="assets/icons/3.webp" alt="" draggable="false">
+      </button>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
