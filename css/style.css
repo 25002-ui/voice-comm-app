@@ -132,11 +132,11 @@ body {
   z-index: 1;
   width: 100%;
   max-width: 900px;
-  max-height: 55cqh;
+  max-height: 65cqh;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, 1fr);
-  gap: 3cqh 3cqw;
+  gap: 6cqh 3cqw;
   place-items: center;
   padding: 3cqh 3cqw;
   border-radius: 5cqh;
@@ -151,19 +151,19 @@ body {
   border: none;
   padding: 0;
   cursor: pointer;
-  width: min(24cqh, 26cqw);
-  height: min(24cqh, 26cqw);
+  width: min(26cqh, 28cqw);
+  height: min(26cqh, 28cqw);
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #00c670 0%, #007442 55%, #004b2b 100%);
   box-shadow:
-    0 8px 0 #00321c,
-    0 12px 18px rgba(0, 0, 0, 0.45),
+    0 10px 0 #00321c,
+    0 14px 20px rgba(0, 0, 0, 0.45),
     inset 0 3px 6px rgba(255, 255, 255, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  transition: transform 0.06s ease, box-shadow 0.06s ease, filter 0.15s ease;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease;
   touch-action: none;
 }
 
@@ -189,7 +189,7 @@ body {
 }
 
 .btn.is-pressed {
-  transform: translateY(6px);
+  transform: translateY(8px);
   box-shadow:
     0 2px 0 #00321c,
     0 4px 8px rgba(0, 0, 0, 0.4),
@@ -204,14 +204,14 @@ body {
 @keyframes pulse-glow {
   0%, 100% {
     box-shadow:
-      0 8px 0 #00321c,
+      0 10px 0 #00321c,
       0 0 14px 8px rgba(255, 255, 120, 0.75),
       0 12px 24px rgba(0, 0, 0, 0.45),
       inset 0 3px 6px rgba(255, 255, 255, 0.5);
   }
   50% {
     box-shadow:
-      0 8px 0 #00321c,
+      0 10px 0 #00321c,
       0 0 30px 18px rgba(255, 255, 160, 1),
       0 12px 24px rgba(0, 0, 0, 0.55),
       inset 0 3px 6px rgba(255, 255, 255, 0.75);
