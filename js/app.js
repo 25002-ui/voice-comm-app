@@ -41,9 +41,9 @@ const topButtons = [
 const preloadedBuffers = {};
 let feedbackBuffer = null;
 
-// 音量調整(dB)。上3ボタン・下3ボタン(加工済み録音)は+5dB、操作音「ピコッ」は-3dB。
-const GAIN_DB_VOICE = 5;
-const GAIN_DB_FEEDBACK = -3;
+// 音量調整(dB)。上3ボタン・下3ボタン(加工済み録音)は+8dB、操作音「ピコッ」は-6dB。
+const GAIN_DB_VOICE = 8;
+const GAIN_DB_FEEDBACK = -6;
 
 function dbToGain(db) {
   return Math.pow(10, db / 20);
