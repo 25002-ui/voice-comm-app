@@ -6,34 +6,46 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#7a0f0f">
+<meta name="theme-color" content="#6e2505">
 <title>音声コミュニケーションアプリ</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <div class="app" id="app">
-    <div class="antenna" aria-hidden="true"></div>
+    <div class="brand" aria-hidden="true">りょうた<br>スイッチ</div>
 
-    <div class="button-grid">
-      <button class="btn btn-top" id="btn-sun" aria-label="おはようを再生">
-        <img src="assets/icons/sun.webp" alt="" draggable="false">
-      </button>
-      <button class="btn btn-top" id="btn-hand" aria-label="おつかれを再生">
-        <img src="assets/icons/hand.webp" alt="" draggable="false">
-      </button>
-      <button class="btn btn-top" id="btn-finger" aria-label="これ見てを再生">
-        <img src="assets/icons/finger.webp" alt="" draggable="false">
-      </button>
+    <div class="antenna" aria-hidden="true">
+      <div class="antenna-cap">
+        <span class="cap-top"></span>
+        <span class="cap-bottom"></span>
+      </div>
+      <div class="antenna-stem"></div>
+    </div>
 
-      <button class="btn btn-bottom" id="btn-1" data-effect="low" aria-label="低い声 録音または再生">
-        <img src="assets/icons/1.webp" alt="" draggable="false">
-      </button>
-      <button class="btn btn-bottom" id="btn-2" data-effect="high" aria-label="高い声 録音または再生">
-        <img src="assets/icons/2.webp" alt="" draggable="false">
-      </button>
-      <button class="btn btn-bottom" id="btn-3" data-effect="robot" aria-label="ロボット声 録音または再生">
-        <img src="assets/icons/3.webp" alt="" draggable="false">
-      </button>
+    <div class="stage">
+      <div class="caption" id="caption" aria-hidden="true"></div>
+
+      <div class="button-grid">
+        <button class="btn btn-top" id="btn-sun" data-label="おはよう" aria-label="おはようを再生">
+          <img src="assets/icons/sun.webp" alt="" draggable="false">
+        </button>
+        <button class="btn btn-top" id="btn-hand" data-label="おつかれさま" aria-label="おつかれさまを再生">
+          <img src="assets/icons/hand.webp" alt="" draggable="false">
+        </button>
+        <button class="btn btn-top" id="btn-finger" data-label="これ見て" aria-label="これ見てを再生">
+          <img src="assets/icons/finger.webp" alt="" draggable="false">
+        </button>
+
+        <button class="btn btn-bottom" id="btn-1" data-effect="low" data-label="ひくいこえ" aria-label="低い声 録音または再生">
+          <img src="assets/icons/1.webp" alt="" draggable="false">
+        </button>
+        <button class="btn btn-bottom" id="btn-2" data-effect="high" data-label="たかいこえ" aria-label="高い声 録音または再生">
+          <img src="assets/icons/2.webp" alt="" draggable="false">
+        </button>
+        <button class="btn btn-bottom" id="btn-3" data-effect="robot" data-label="ロボットこえ" aria-label="ロボット声 録音または再生">
+          <img src="assets/icons/3.webp" alt="" draggable="false">
+        </button>
+      </div>
     </div>
   </div>
 

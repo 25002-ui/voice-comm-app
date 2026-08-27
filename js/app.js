@@ -137,6 +137,15 @@ function playFeedbackThenBuffer(buffer, onEnded) {
 /* ---------- UI ---------- */
 
 const allButtons = Array.from(document.querySelectorAll('.btn'));
+const captionEl = document.getElementById('caption');
+
+function showCaption(text) {
+  if (captionEl) captionEl.textContent = text || '';
+}
+
+function clearCaption() {
+  if (captionEl) captionEl.textContent = '';
+}
 
 function setAppState(state, buttonId) {
   appState = state;
@@ -161,9 +170,11 @@ function updateButtonDisabled() {
 
 function glowOn(btn) {
   btn.classList.add('is-glow');
+  showCaption(btn.dataset.label);
 }
 function glowOff(btn) {
   btn.classList.remove('is-glow');
+  clearCaption();
 }
 
 /* ---------- 上段ボタン ---------- */
