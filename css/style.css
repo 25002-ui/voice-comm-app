@@ -91,7 +91,7 @@ body {
   color: #fff;
   font-family: 'Palette Mosaic', sans-serif;
   font-weight: 400;
-  font-size: calc(min(2.1cqh, 2.4cqw) + 7px);
+  font-size: calc((min(2.1cqh, 2.4cqw) + 7px) * 2);
   line-height: 1.2;
   text-align: center;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
@@ -101,19 +101,19 @@ body {
 .caption {
   width: 100%;
   max-width: 900px;
-  height: auto;
+  height: 24cqh;
   min-height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   white-space: nowrap;
-  padding: 1cqh 3cqw;
+  padding: 0 3cqw;
   border-radius: 1.6cqh;
   background: rgba(255, 255, 255, 0.4);
   color: #fff;
   font-family: 'Palette Mosaic', sans-serif;
-  font-size: min(20cqh, 22cqw);
+  font-size: min(16cqh, 17.6cqw);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
   pointer-events: none;
   transition: background-color 0.15s ease;
@@ -121,7 +121,6 @@ body {
 
 .caption:empty {
   background: transparent;
-  padding: 0;
 }
 
 .button-grid {
@@ -144,30 +143,17 @@ body {
   cursor: pointer;
   width: min(26cqh, 28cqw);
   height: min(26cqh, 28cqw);
-  border-radius: 28%;
-  background: radial-gradient(circle at 35% 30%, #00c670 0%, #007442 55%, #004b2b 100%);
+  border-radius: 18%;
+  background: #007442;
   box-shadow:
     0 10px 0 #00321c,
-    0 14px 20px rgba(0, 0, 0, 0.45),
-    inset 0 3px 6px rgba(255, 255, 255, 0.4);
+    0 14px 20px rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease;
   touch-action: none;
-}
-
-.btn::before {
-  content: '';
-  position: absolute;
-  top: 10%;
-  left: 18%;
-  width: 50%;
-  height: 30%;
-  border-radius: 28%;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 100%);
-  pointer-events: none;
 }
 
 .btn img {
@@ -183,8 +169,7 @@ body {
   transform: translateY(8px);
   box-shadow:
     0 2px 0 #00321c,
-    0 4px 8px rgba(0, 0, 0, 0.4),
-    inset 0 3px 6px rgba(255, 255, 255, 0.25);
+    0 4px 8px rgba(0, 0, 0, 0.4);
   filter: brightness(0.92);
 }
 
@@ -197,15 +182,13 @@ body {
     box-shadow:
       0 10px 0 #00321c,
       0 0 14px 8px rgba(255, 255, 120, 0.75),
-      0 12px 24px rgba(0, 0, 0, 0.45),
-      inset 0 3px 6px rgba(255, 255, 255, 0.5);
+      0 12px 24px rgba(0, 0, 0, 0.45);
   }
   50% {
     box-shadow:
       0 10px 0 #00321c,
       0 0 30px 18px rgba(255, 255, 160, 1),
-      0 12px 24px rgba(0, 0, 0, 0.55),
-      inset 0 3px 6px rgba(255, 255, 255, 0.75);
+      0 12px 24px rgba(0, 0, 0, 0.55);
   }
 }
 
