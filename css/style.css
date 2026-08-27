@@ -27,12 +27,13 @@ body {
 .app {
   position: relative;
   width: 100%;
-  min-height: 100dvh;
+  height: 100dvh;
+  container-type: size;
   background: radial-gradient(ellipse at 50% 0%, #e23b3b 0%, #b81f1f 45%, #7a0f0f 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 3vh 4vw;
+  padding: 3cqh 4cqw;
   overflow: hidden;
 }
 
@@ -70,7 +71,7 @@ body {
   width: 100%;
   max-width: 900px;
   height: 100%;
-  max-height: 60vh;
+  max-height: 60cqh;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(2, 1fr);
@@ -83,8 +84,8 @@ body {
   border: none;
   padding: 0;
   cursor: pointer;
-  width: min(24vh, 26vw);
-  height: min(24vh, 26vw);
+  width: min(24cqh, 26cqw);
+  height: min(24cqh, 26cqw);
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, #7ee06a 0%, #3fa832 55%, #256b1e 100%);
   box-shadow:
@@ -202,5 +203,23 @@ body {
     overflow-x: hidden;
     transform-origin: left top;
     transform: rotate(90deg);
+  }
+
+  /*
+   * html自体は上で回転後の見た目に合わせて幅・高さを入れ替えているが、
+   * body/.appが引き続き100dvh(常にスマホ本体の高さを指す単位)を
+   * 基準にしていると、回転後の見た目の枠とズレて配置が崩れる。
+   * ここで「回転後のhtmlの箱」に対する100%へ切り替えることで、
+   * .app自身の大きさ(そしてそれを基準にするcqw/cqh)が
+   * 見た目通りの横向きの枠に正しく一致するようにする。
+   */
+  body {
+    width: 100%;
+    height: 100%;
+  }
+
+  .app {
+    width: 100%;
+    height: 100%;
   }
 }
