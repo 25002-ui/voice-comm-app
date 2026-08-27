@@ -75,6 +75,13 @@ async function preloadAll() {
  * 音量を指定dBだけ増減して再生する。
  * ゲインを上げる場合はDynamicsCompressorNodeを通し、
  * 音割れ(クリッピング)しない範囲へ自動的に抑える。
+ *
+ * iOS SafariベースのWebKit(iPhoneのChrome含む)では、AudioContextが
+ * suspended状態から復帰しきらず、AudioBufferSourceNodeのonendedが
+ * 一度も発火しないことがある(既知の癖)。onendedだけに頼ると、
+ * 発光やボタンの無効化状態が永久に解除されなくなるため、
+ * 「再生時間+余裕」を過ぎても呼ばれなければ強制的に終了扱いにする
+ * セーフティタイマーを設けている。
  */
 function playBufferWithGain(buffer, gainDb, onEnded) {
   const ctx = getAudioContext();
@@ -95,10 +102,25 @@ function playBufferWithGain(buffer, gainDb, onEnded) {
   gainNode.connect(limiter);
   limiter.connect(ctx.destination);
 
-  src.onended = () => {
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    clearTimeout(safetyTimer);
     if (onEnded) onEnded();
   };
-  src.start(0);
+
+  src.onended = finish;
+
+  const safetyMs = (buffer.duration + 0.5) * 1000;
+  const safetyTimer = setTimeout(finish, safetyMs);
+
+  try {
+    src.start(0);
+  } catch (err) {
+    console.error('再生を開始できませんでした:', err);
+    finish();
+  }
   return src;
 }
 
@@ -500,6 +522,14 @@ function unlockAudioOnce() {
   window.removeEventListener('pointerdown', unlockAudioOnce);
 }
 window.addEventListener('pointerdown', unlockAudioOnce, { once: true });
+
+// iOSでタブがバックグラウンドから復帰した際などにAudioContextが
+// 再度suspendedになることがあるため、復帰のたびに再開を試みる。
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+});
 
 document.addEventListener(
   'touchmove',
