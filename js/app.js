@@ -41,6 +41,14 @@ const topButtons = [
 const preloadedBuffers = {};
 let feedbackBuffer = null;
 
+// 音量調整(dB)。上3ボタン・下3ボタン(加工済み録音)は+5dB、操作音「ピコッ」は-3dB。
+const GAIN_DB_VOICE = 5;
+const GAIN_DB_FEEDBACK = -3;
+
+function dbToGain(db) {
+  return Math.pow(10, db / 20);
+}
+
 async function loadAudioBuffer(url) {
   const ctx = getAudioContext();
   const res = await fetch(url);
@@ -63,11 +71,30 @@ async function preloadAll() {
   }
 }
 
-function playBuffer(buffer, onEnded) {
+/**
+ * 音量を指定dBだけ増減して再生する。
+ * ゲインを上げる場合はDynamicsCompressorNodeを通し、
+ * 音割れ(クリッピング)しない範囲へ自動的に抑える。
+ */
+function playBufferWithGain(buffer, gainDb, onEnded) {
   const ctx = getAudioContext();
   const src = ctx.createBufferSource();
   src.buffer = buffer;
-  src.connect(ctx.destination);
+
+  const gainNode = ctx.createGain();
+  gainNode.gain.value = dbToGain(gainDb);
+
+  const limiter = ctx.createDynamicsCompressor();
+  limiter.threshold.setValueAtTime(-3, ctx.currentTime);
+  limiter.knee.setValueAtTime(6, ctx.currentTime);
+  limiter.ratio.setValueAtTime(12, ctx.currentTime);
+  limiter.attack.setValueAtTime(0.003, ctx.currentTime);
+  limiter.release.setValueAtTime(0.15, ctx.currentTime);
+
+  src.connect(gainNode);
+  gainNode.connect(limiter);
+  limiter.connect(ctx.destination);
+
   src.onended = () => {
     if (onEnded) onEnded();
   };
@@ -75,15 +102,14 @@ function playBuffer(buffer, onEnded) {
   return src;
 }
 
+function playFeedback() {
+  if (!feedbackBuffer) return;
+  playBufferWithGain(feedbackBuffer, GAIN_DB_FEEDBACK, null);
+}
+
 function playFeedbackThenBuffer(buffer, onEnded) {
-  const ctx = getAudioContext();
-  if (feedbackBuffer) {
-    const beep = ctx.createBufferSource();
-    beep.buffer = feedbackBuffer;
-    beep.connect(ctx.destination);
-    beep.start(0);
-  }
-  playBuffer(buffer, onEnded);
+  playFeedback();
+  playBufferWithGain(buffer, GAIN_DB_VOICE, onEnded);
 }
 
 /* ---------- UI ---------- */
@@ -251,13 +277,7 @@ async function startLongPress(id, btn) {
       console.error('録音でエラーが発生しました:', ev.error);
     };
 
-    if (feedbackBuffer) {
-      const ctx = getAudioContext();
-      const beep = ctx.createBufferSource();
-      beep.buffer = feedbackBuffer;
-      beep.connect(ctx.destination);
-      beep.start(0);
-    }
+    playFeedback();
     recorder.start();
   } catch (err) {
     console.error('録音を開始できませんでした:', err);
