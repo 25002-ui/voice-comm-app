@@ -1,6 +1,6 @@
 @font-face {
   font-family: 'Palette Mosaic';
-  src: url('../assets/fonts/PaletteMosaic-Regular.woff2') format('woff2');
+  src: url('../assets/fonts/PaletteMosaic-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -51,11 +51,9 @@ body {
   inset: 0;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.65;
-  background-image: url('../assets/background-image.png');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  box-shadow:
+    inset 0 0 8cqh rgba(0, 0, 0, 0.4),
+    inset 0 0 0 1.2cqh rgba(0, 0, 0, 0.12);
 }
 
 .app::after {
@@ -90,10 +88,15 @@ body {
   top: 2cqh;
   left: 3cqw;
   z-index: 2;
+  padding: 0.7cqh 1.6cqw;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.24);
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
   color: #fff;
   font-weight: 700;
-  font-size: min(2.3cqh, 2.6cqw);
-  line-height: 1.15;
+  font-size: min(2.1cqh, 2.4cqw);
+  line-height: 1.2;
+  text-align: center;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
   pointer-events: none;
 }
@@ -108,11 +111,20 @@ body {
   justify-content: center;
   overflow: hidden;
   white-space: nowrap;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
   color: #fff;
   font-family: 'Palette Mosaic', sans-serif;
-  font-size: min(5.5cqh, 6cqw);
+  font-size: min(5cqh, 5.5cqw);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
   pointer-events: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.caption:empty {
+  background: transparent;
+  border-color: transparent;
 }
 
 .button-grid {
@@ -126,6 +138,12 @@ body {
   grid-template-rows: repeat(2, 1fr);
   gap: 3cqh 3cqw;
   place-items: center;
+  padding: 3cqh 3cqw;
+  border-radius: 5cqh;
+  background: rgba(0, 0, 0, 0.18);
+  box-shadow:
+    inset 0 3px 8px rgba(0, 0, 0, 0.35),
+    inset 0 -2px 4px rgba(255, 255, 255, 0.08);
 }
 
 .btn {
@@ -147,6 +165,18 @@ body {
   position: relative;
   transition: transform 0.06s ease, box-shadow 0.06s ease, filter 0.15s ease;
   touch-action: none;
+}
+
+.btn::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 18%;
+  width: 50%;
+  height: 30%;
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 100%);
+  pointer-events: none;
 }
 
 .btn img {
@@ -242,18 +272,6 @@ body {
   box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.35), 0 2px 4px rgba(0, 0, 0, 0.35);
 }
 
-/*
- * 縦向きで開いたときに画面全体を90度回転させ、
- * 「横向きにしてください」を文字で説明しなくても
- * 見た目自体が横向きレイアウトになるようにする。
- *
- * ポイント: この判定はデバイスのセンサーではなく
- * 実際の描画ビューポートの縦横比(orientation: portrait)を見ているため、
- * ユーザーが物理的にスマホを横向きに回転させると
- * ビューポート自体が横長になり、このmedia queryが外れて
- * 通常の(回転していない)横向きレイアウトに戻る。
- * そのため「回転させたらさらに回転してしまう」ことは起きない。
- */
 @media screen and (orientation: portrait) {
   html {
     position: absolute;
