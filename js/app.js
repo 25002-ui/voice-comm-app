@@ -21,6 +21,19 @@ const MAX_RECORD_MS = 10000;
 const MIN_RECORD_MS = 300;
 
 let audioCtx = null;
+let audioUnlocked = false;
+
+/*
+ * iOS(Safari/Chrome共通のWebKitエンジン)では、AudioContextが
+ * resume() を呼ぶだけでは「running」状態まで確実に復帰しないことがある。
+ * 以前は「window全体のタップ」を監視して別途アンロックしていたが、
+ * イベントの発火順序上、ボタン自身の再生処理より後に実行されてしまい、
+ * 「1回目は鳴らず、他のボタンを押した後になってようやく鳴る」という
+ * 不具合が起きていた。
+ *
+ * これを防ぐため、実際に音を鳴らす直前に呼ばれるgetAudioContext()自体の中で、
+ * 同じ一連の処理(=同じユーザー操作)の中で確実にアンロックを行う。
+ */
 function getAudioContext() {
   if (!audioCtx) {
     const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -28,6 +41,20 @@ function getAudioContext() {
   }
   if (audioCtx.state === 'suspended') {
     audioCtx.resume().catch(() => {});
+  }
+  if (!audioUnlocked) {
+    try {
+      const silentBuffer = audioCtx.createBuffer(1, 1, 22050);
+      const silentSource = audioCtx.createBufferSource();
+      silentSource.buffer = silentBuffer;
+      silentSource.connect(audioCtx.destination);
+      silentSource.start(0);
+    } catch (e) {
+      console.error('音声の初期化(アンロック)に失敗しました:', e);
+    }
+    if (audioCtx.state === 'running') {
+      audioUnlocked = true;
+    }
   }
   return audioCtx;
 }
@@ -442,10 +469,11 @@ function pitchShiftBuffer(buffer, semitones) {
 /* ---- ロボット声: リングモジュレーション + ビットクラッシャー + トレモロ + フィルター ---- */
 
 function makeBitcrusherCurve(levels) {
-  const curve = new Float32Array(levels);
-  for (let i = 0; i < levels; i++) {
-    const x = (i / (levels - 1)) * 2 - 1;
-    curve[i] = Math.round(x * 8) / 8;
+  const curve = new Float32Array(256);
+  const step = 2 / levels;
+  for (let i = 0; i < 256; i++) {
+    const x = (i / 255) * 2 - 1;
+    curve[i] = Math.round(x / step) * step;
   }
   return curve;
 }
@@ -467,49 +495,56 @@ async function robotVoiceBuffer(buffer) {
   const source = offline.createBufferSource();
   source.buffer = buffer;
 
-  // ビットクラッシャー(WaveShaperによる簡易量子化)
+  // ビットクラッシャー(WaveShaperによる簡易量子化)。
+  // 量子化レベルを増やし、粗く割れて聞こえないよう穏やかにする。
   const bitcrusher = offline.createWaveShaper();
-  bitcrusher.curve = makeBitcrusherCurve(32);
+  bitcrusher.curve = makeBitcrusherCurve(56);
   bitcrusher.oversample = 'none';
 
-  // リングモジュレーション
-  const ringGain = offline.createGain();
-  ringGain.gain.value = 0;
+  // リングモジュレーション。
+  // 従来は基準ゲイン0からの全振幅(±1)変調で位相が反転し、
+  // 「音割れ」のように聞こえる主な原因だったため、
+  // 基準ゲインを持たせた「部分的な深さ」の変調に弱める。
+  const ringBaseGain = offline.createGain();
+  ringBaseGain.gain.value = 0.55;
+  const ringDepth = offline.createGain();
+  ringDepth.gain.value = 0.45;
   const ringOsc = offline.createOscillator();
   ringOsc.type = 'sine';
-  ringOsc.frequency.value = 45;
-  ringOsc.connect(ringGain.gain);
+  ringOsc.frequency.value = 30;
+  ringOsc.connect(ringDepth);
+  ringDepth.connect(ringBaseGain.gain);
 
-  // トレモロ(振幅の断続感)
+  // トレモロ(振幅の断続感)。深さを浅くして聞き取りやすくする。
   const tremoloGain = offline.createGain();
-  tremoloGain.gain.value = 0.6;
+  tremoloGain.gain.value = 0.78;
   const tremoloOsc = offline.createOscillator();
   tremoloOsc.type = 'square';
   tremoloOsc.frequency.value = 9;
   const tremoloDepth = offline.createGain();
-  tremoloDepth.gain.value = 0.4;
+  tremoloDepth.gain.value = 0.22;
   tremoloOsc.connect(tremoloDepth);
   tremoloDepth.connect(tremoloGain.gain);
 
-  // 軽度のディストーション
+  // 軽度のディストーション。量を大幅に減らす。
   const distortion = offline.createWaveShaper();
-  distortion.curve = makeDistortionCurve(15);
+  distortion.curve = makeDistortionCurve(6);
   distortion.oversample = '2x';
 
-  // 帯域を軽く整えるフィルター
+  // 帯域を整えるフィルター。通過帯域を少し広げて明瞭さを確保する。
   const lowpass = offline.createBiquadFilter();
   lowpass.type = 'lowpass';
-  lowpass.frequency.value = 4500;
+  lowpass.frequency.value = 5500;
   const highpass = offline.createBiquadFilter();
   highpass.type = 'highpass';
-  highpass.frequency.value = 120;
+  highpass.frequency.value = 100;
 
   const outGain = offline.createGain();
-  outGain.gain.value = 0.9;
+  outGain.gain.value = 0.95;
 
   source.connect(bitcrusher);
-  bitcrusher.connect(ringGain);
-  ringGain.connect(tremoloGain);
+  bitcrusher.connect(ringBaseGain);
+  ringBaseGain.connect(tremoloGain);
   tremoloGain.connect(distortion);
   distortion.connect(highpass);
   highpass.connect(lowpass);
@@ -528,43 +563,13 @@ async function robotVoiceBuffer(buffer) {
    初期化
    ========================================================= */
 
-/*
- * iOS(Safari/Chrome共通のWebKitエンジン)では、ページ読み込み時に
- * 作成したAudioContextが、単に resume() を呼ぶだけでは
- * 「running」状態まで確実に復帰しないことがある(既知の癖)。
- * その状態だと、ボタンの見た目(発光)は正常に動くのに、
- * 実際の音(操作音・上段の音声・下段の再生)が一切鳴らなくなる。
- *
- * これを防ぐため、ユーザーが画面をタップするたびに
- * 「無音の音声を実際に1回再生する」ことでオーディオ出力を強制的に
- * 有効化(アンロック)し、running状態になったことを確認できるまで
- * 毎回のタップで繰り返し試みる。
- */
-let audioUnlocked = false;
-function unlockAudio() {
-  if (audioUnlocked) return;
-  const ctx = getAudioContext();
-  try {
-    const silentBuffer = ctx.createBuffer(1, 1, 22050);
-    const silentSource = ctx.createBufferSource();
-    silentSource.buffer = silentBuffer;
-    silentSource.connect(ctx.destination);
-    silentSource.start(0);
-  } catch (e) {
-    console.error('音声の初期化(アンロック)に失敗しました:', e);
-  }
-  if (ctx.state === 'running') {
-    audioUnlocked = true;
-    window.removeEventListener('pointerdown', unlockAudio);
-  }
-}
-window.addEventListener('pointerdown', unlockAudio);
-
+// iOSでタブがバックグラウンドから復帰した際などにAudioContextが
+// 再度suspendedになることがあるため、復帰のたびに再開を試み、
+// アンロック済みフラグもリセットして次回の再生時に再アンロックさせる。
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && audioCtx && audioCtx.state === 'suspended') {
     audioCtx.resume().catch(() => {});
     audioUnlocked = false;
-    window.addEventListener('pointerdown', unlockAudio);
   }
 });
 
