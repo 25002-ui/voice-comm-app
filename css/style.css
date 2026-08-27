@@ -108,20 +108,11 @@ body {
   justify-content: center;
   overflow: hidden;
   white-space: nowrap;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.28);
-  border: 1.5px solid rgba(255, 255, 255, 0.2);
   color: #fff;
   font-family: 'Palette Mosaic', sans-serif;
   font-size: min(5cqh, 5.5cqw);
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
   pointer-events: none;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.caption:empty {
-  background: transparent;
-  border-color: transparent;
 }
 
 .button-grid {

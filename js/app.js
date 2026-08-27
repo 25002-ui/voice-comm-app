@@ -528,17 +528,43 @@ async function robotVoiceBuffer(buffer) {
    初期化
    ========================================================= */
 
-function unlockAudioOnce() {
-  getAudioContext();
-  window.removeEventListener('pointerdown', unlockAudioOnce);
+/*
+ * iOS(Safari/Chrome共通のWebKitエンジン)では、ページ読み込み時に
+ * 作成したAudioContextが、単に resume() を呼ぶだけでは
+ * 「running」状態まで確実に復帰しないことがある(既知の癖)。
+ * その状態だと、ボタンの見た目(発光)は正常に動くのに、
+ * 実際の音(操作音・上段の音声・下段の再生)が一切鳴らなくなる。
+ *
+ * これを防ぐため、ユーザーが画面をタップするたびに
+ * 「無音の音声を実際に1回再生する」ことでオーディオ出力を強制的に
+ * 有効化(アンロック)し、running状態になったことを確認できるまで
+ * 毎回のタップで繰り返し試みる。
+ */
+let audioUnlocked = false;
+function unlockAudio() {
+  if (audioUnlocked) return;
+  const ctx = getAudioContext();
+  try {
+    const silentBuffer = ctx.createBuffer(1, 1, 22050);
+    const silentSource = ctx.createBufferSource();
+    silentSource.buffer = silentBuffer;
+    silentSource.connect(ctx.destination);
+    silentSource.start(0);
+  } catch (e) {
+    console.error('音声の初期化(アンロック)に失敗しました:', e);
+  }
+  if (ctx.state === 'running') {
+    audioUnlocked = true;
+    window.removeEventListener('pointerdown', unlockAudio);
+  }
 }
-window.addEventListener('pointerdown', unlockAudioOnce, { once: true });
+window.addEventListener('pointerdown', unlockAudio);
 
-// iOSでタブがバックグラウンドから復帰した際などにAudioContextが
-// 再度suspendedになることがあるため、復帰のたびに再開を試みる。
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && audioCtx && audioCtx.state === 'suspended') {
     audioCtx.resume().catch(() => {});
+    audioUnlocked = false;
+    window.addEventListener('pointerdown', unlockAudio);
   }
 });
 
