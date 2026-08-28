@@ -23,6 +23,30 @@ const MIN_RECORD_MS = 300;
 let audioCtx = null;
 let audioUnlocked = false;
 
+/*
+ * iOSでは、ユーザーが一度も画面に触れる前に AudioContext を
+ * 作成してしまうと、その後どれだけ resume() を呼んでも
+ * 完全には音声が有効化されないことがある(既知の制約)。
+ *
+ * これまでは音源の事前読み込み(ページを開いた直後、まだ画面に
+ * 触れる前に実行される)の際に、実際の再生用AudioContextを
+ * 使い回してしまっていたため、この制約に引っかかっていた可能性が高い。
+ *
+ * そこで、音声ファイルの「デコード(読み込み)専用」のAudioContextと、
+ * 実際に音を鳴らす「再生専用」のAudioContextを完全に分離する。
+ * デコード専用の方はいつ作っても問題ない。再生専用の方(audioCtx)は、
+ * ユーザーが実際にボタンを押した瞬間(=ensureAudioReady()が
+ * 呼ばれた瞬間)に初めて作成する。
+ */
+let decodeCtx = null;
+function getDecodeContext() {
+  if (!decodeCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    decodeCtx = new Ctx();
+  }
+  return decodeCtx;
+}
+
 function getAudioContext() {
   if (!audioCtx) {
     const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -65,26 +89,15 @@ async function ensureAudioReady() {
 }
 
 const topButtons = [
-  { id: 'btn-sun', src: 'assets/audio/ohayo.mp3' },
-  { id: 'btn-hand', src: 'assets/audio/otsukare.mp3' },
-  { id: 'btn-finger', src: 'assets/audio/koremite.mp3' },
-  { id: 'brand-switch', src: 'assets/audio/ryotaswitch.mp3' },
+  { id: 'btn-sun', src: 'assets/audio/ohayo.mp3', gainDb: 13 },
+  { id: 'btn-hand', src: 'assets/audio/otsukare.mp3', gainDb: 13 },
+  { id: 'btn-finger', src: 'assets/audio/koremite.mp3', gainDb: 13 },
+  { id: 'brand-switch', src: 'assets/audio/ryotaswitch.mp3', gainDb: 10 }, // 他より-3dB
 ];
 
 const preloadedBuffers = {}; // id -> Promise<AudioBuffer | null>
 let feedbackBufferPromise = null;
 
-/*
- * これまでは音声ファイルを1つずつ順番に読み込んでおり、
- * 読み込みが終わる前にボタンを押すと、エラー表示もないまま
- * 静かに再生をあきらめる作りになっていた(「初回タップだけ無音」の
- * 主な原因と考えられる)。
- *
- * ここでは全ての音源の読み込みを同時に開始し(並列化して読み込み自体を高速化)、
- * かつ各ボタンの再生処理側で「読み込みが終わるまで待ってから再生する」
- * ようにすることで、読み込みが間に合わなかった場合でも
- * 音が完全に消えてしまうことを防ぐ。
- */
 function startPreload() {
   topButtons.forEach((b) => {
     preloadedBuffers[b.id] = loadAudioBuffer(b.src).catch((e) => {
@@ -98,7 +111,7 @@ function startPreload() {
   });
 }
 
-// 音量調整(dB)。上3ボタン・下3ボタン(加工済み録音)は+13dB、操作音「ピコッ」は-6dB。
+// 音量調整(dB)。上3ボタン・下3ボタン(加工済み録音)は基本+13dB(りょうたスイッチのみ+10dB)、操作音「ピコッ」は-6dB。
 const GAIN_DB_VOICE = 13;
 const GAIN_DB_FEEDBACK = -6;
 
@@ -107,17 +120,12 @@ function dbToGain(db) {
 }
 
 async function loadAudioBuffer(url) {
-  const ctx = getAudioContext();
+  const ctx = getDecodeContext();
   const res = await fetch(url);
   const arr = await res.arrayBuffer();
   return await ctx.decodeAudioData(arr);
 }
 
-/**
- * 音量を指定dBだけ増減して再生する。
- * ゲインを上げる場合はDynamicsCompressorNodeを通し、
- * 音割れ(クリッピング)しない範囲へ自動的に抑える。
- */
 async function playBufferWithGain(buffer, gainDb, onEnded) {
   const ctx = await ensureAudioReady();
   const src = ctx.createBufferSource();
@@ -166,9 +174,9 @@ async function playFeedback() {
   playBufferWithGain(buffer, GAIN_DB_FEEDBACK, null);
 }
 
-function playFeedbackThenBuffer(buffer, onEnded) {
+function playFeedbackThenBuffer(buffer, onEnded, gainDb = GAIN_DB_VOICE) {
   playFeedback();
-  playBufferWithGain(buffer, GAIN_DB_VOICE, onEnded);
+  playBufferWithGain(buffer, gainDb, onEnded);
 }
 
 /* ---------- UI ---------- */
@@ -234,10 +242,14 @@ topButtons.forEach((info) => {
       return;
     }
 
-    playFeedbackThenBuffer(buffer, () => {
-      glowOff(btn);
-      setAppState(STATE.IDLE);
-    });
+    playFeedbackThenBuffer(
+      buffer,
+      () => {
+        glowOff(btn);
+        setAppState(STATE.IDLE);
+      },
+      info.gainDb
+    );
   });
 });
 
@@ -384,7 +396,7 @@ function stopRecording(id, btn) {
     try {
       const blob = new Blob(info.chunks, { type: info.mediaRecorder.mimeType || 'audio/webm' });
       const arrayBuffer = await blob.arrayBuffer();
-      const ctx = getAudioContext();
+      const ctx = getDecodeContext();
       const decoded = await ctx.decodeAudioData(arrayBuffer);
       const effect = btn.dataset.effect;
       const processed = await applyEffect(decoded, effect);
@@ -429,8 +441,6 @@ async function applyEffect(buffer, effect) {
   return buffer;
 }
 
-/* ---- 低い声・高い声: グラニュラー方式ピッチシフト(再生時間を維持) ---- */
-
 function hannWindow(size) {
   const w = new Float32Array(size);
   for (let i = 0; i < size; i++) {
@@ -470,7 +480,7 @@ function pitchShiftChannel(inputData, semitones) {
 }
 
 function pitchShiftBuffer(buffer, semitones) {
-  const ctx = getAudioContext();
+  const ctx = getDecodeContext();
   const channels = buffer.numberOfChannels;
   const out = ctx.createBuffer(channels, buffer.length, buffer.sampleRate);
   for (let ch = 0; ch < channels; ch++) {
@@ -479,8 +489,6 @@ function pitchShiftBuffer(buffer, semitones) {
   }
   return out;
 }
-
-/* ---- ロボット声: リングモジュレーション + ビットクラッシャー + トレモロ + フィルター ---- */
 
 function makeBitcrusherCurve(levels) {
   const curve = new Float32Array(256);
