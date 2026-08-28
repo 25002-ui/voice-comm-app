@@ -35,12 +35,8 @@ function getAudioContext() {
 }
 
 /*
- * 実際に音を鳴らす直前に必ず呼ぶ。
- * これまでの実装は resume() の完了を待たずに次の処理へ進んでしまい、
- * 「解錠が終わる前に本来鳴らしたい音のstart(0)が呼ばれてしまう」
- * という処理の順序不備があった(resume()は完了まで一瞬時間がかかる非同期処理のため)。
- * ここでは resume() の完了を確実に待ってから、無音バッファでの
- * 追加アンロックを行うことで、初回タップでも確実に音が鳴るようにする。
+ * 実際に音を鳴らす直前に必ず呼ぶ。resume() の完了を確実に待ってから、
+ * 無音バッファでの追加アンロックを行う。
  */
 async function ensureAudioReady() {
   const ctx = getAudioContext();
@@ -48,7 +44,7 @@ async function ensureAudioReady() {
     try {
       await ctx.resume();
     } catch (e) {
-      // 無視(既に解決済み等のケース)
+      // 無視
     }
   }
   if (!audioUnlocked) {
@@ -75,11 +71,35 @@ const topButtons = [
   { id: 'brand-switch', src: 'assets/audio/ryotaswitch.mp3' },
 ];
 
-const preloadedBuffers = {};
-let feedbackBuffer = null;
+const preloadedBuffers = {}; // id -> Promise<AudioBuffer | null>
+let feedbackBufferPromise = null;
 
-// 音量調整(dB)。上3ボタン・下3ボタン(加工済み録音)は+8dB、操作音「ピコッ」は-6dB。
-const GAIN_DB_VOICE = 8;
+/*
+ * これまでは音声ファイルを1つずつ順番に読み込んでおり、
+ * 読み込みが終わる前にボタンを押すと、エラー表示もないまま
+ * 静かに再生をあきらめる作りになっていた(「初回タップだけ無音」の
+ * 主な原因と考えられる)。
+ *
+ * ここでは全ての音源の読み込みを同時に開始し(並列化して読み込み自体を高速化)、
+ * かつ各ボタンの再生処理側で「読み込みが終わるまで待ってから再生する」
+ * ようにすることで、読み込みが間に合わなかった場合でも
+ * 音が完全に消えてしまうことを防ぐ。
+ */
+function startPreload() {
+  topButtons.forEach((b) => {
+    preloadedBuffers[b.id] = loadAudioBuffer(b.src).catch((e) => {
+      console.error('音源の読み込みに失敗しました:', b.src, e);
+      return null;
+    });
+  });
+  feedbackBufferPromise = loadAudioBuffer('assets/audio/FeedbackSound.mp3').catch((e) => {
+    console.error('操作音の読み込みに失敗しました:', e);
+    return null;
+  });
+}
+
+// 音量調整(dB)。上3ボタン・下3ボタン(加工済み録音)は+13dB、操作音「ピコッ」は-6dB。
+const GAIN_DB_VOICE = 13;
 const GAIN_DB_FEEDBACK = -6;
 
 function dbToGain(db) {
@@ -93,32 +113,10 @@ async function loadAudioBuffer(url) {
   return await ctx.decodeAudioData(arr);
 }
 
-async function preloadAll() {
-  for (const b of topButtons) {
-    try {
-      preloadedBuffers[b.id] = await loadAudioBuffer(b.src);
-    } catch (e) {
-      console.error('音源の読み込みに失敗しました:', b.src, e);
-    }
-  }
-  try {
-    feedbackBuffer = await loadAudioBuffer('assets/audio/FeedbackSound.mp3');
-  } catch (e) {
-    console.error('操作音の読み込みに失敗しました:', e);
-  }
-}
-
 /**
  * 音量を指定dBだけ増減して再生する。
  * ゲインを上げる場合はDynamicsCompressorNodeを通し、
  * 音割れ(クリッピング)しない範囲へ自動的に抑える。
- *
- * iOS SafariベースのWebKit(iPhoneのChrome含む)では、AudioContextが
- * suspended状態から復帰しきらず、AudioBufferSourceNodeのonendedが
- * 一度も発火しないことがある(既知の癖)。onendedだけに頼ると、
- * 発光やボタンの無効化状態が永久に解除されなくなるため、
- * 「再生時間+余裕」を過ぎても呼ばれなければ強制的に終了扱いにする
- * セーフティタイマーを設けている。
  */
 async function playBufferWithGain(buffer, gainDb, onEnded) {
   const ctx = await ensureAudioReady();
@@ -161,9 +159,11 @@ async function playBufferWithGain(buffer, gainDb, onEnded) {
   return src;
 }
 
-function playFeedback() {
-  if (!feedbackBuffer) return;
-  playBufferWithGain(feedbackBuffer, GAIN_DB_FEEDBACK, null);
+async function playFeedback() {
+  if (!feedbackBufferPromise) return;
+  const buffer = await feedbackBufferPromise;
+  if (!buffer) return;
+  playBufferWithGain(buffer, GAIN_DB_FEEDBACK, null);
 }
 
 function playFeedbackThenBuffer(buffer, onEnded) {
@@ -220,16 +220,20 @@ topButtons.forEach((info) => {
   const btn = document.getElementById(info.id);
   if (!btn) return;
 
-  btn.addEventListener('pointerdown', (e) => {
+  btn.addEventListener('pointerdown', async (e) => {
     e.preventDefault();
     if (appState !== STATE.IDLE) return;
-    const buffer = preloadedBuffers[info.id];
-    if (!buffer) {
-      console.error('未読み込みの音源です:', info.id);
-      return;
-    }
     setAppState(STATE.PLAYING, info.id);
     glowOn(btn);
+
+    const buffer = await preloadedBuffers[info.id];
+    if (!buffer) {
+      console.error('音源を再生できませんでした:', info.id);
+      glowOff(btn);
+      setAppState(STATE.IDLE);
+      return;
+    }
+
     playFeedbackThenBuffer(buffer, () => {
       glowOff(btn);
       setAppState(STATE.IDLE);
@@ -505,16 +509,10 @@ async function robotVoiceBuffer(buffer) {
   const source = offline.createBufferSource();
   source.buffer = buffer;
 
-  // ビットクラッシャー(WaveShaperによる簡易量子化)。
-  // 量子化レベルを増やし、粗く割れて聞こえないよう穏やかにする。
   const bitcrusher = offline.createWaveShaper();
   bitcrusher.curve = makeBitcrusherCurve(56);
   bitcrusher.oversample = 'none';
 
-  // リングモジュレーション。
-  // 従来は基準ゲイン0からの全振幅(±1)変調で位相が反転し、
-  // 「音割れ」のように聞こえる主な原因だったため、
-  // 基準ゲインを持たせた「部分的な深さ」の変調に弱める。
   const ringBaseGain = offline.createGain();
   ringBaseGain.gain.value = 0.55;
   const ringDepth = offline.createGain();
@@ -525,7 +523,6 @@ async function robotVoiceBuffer(buffer) {
   ringOsc.connect(ringDepth);
   ringDepth.connect(ringBaseGain.gain);
 
-  // トレモロ(振幅の断続感)。深さを浅くして聞き取りやすくする。
   const tremoloGain = offline.createGain();
   tremoloGain.gain.value = 0.78;
   const tremoloOsc = offline.createOscillator();
@@ -536,12 +533,10 @@ async function robotVoiceBuffer(buffer) {
   tremoloOsc.connect(tremoloDepth);
   tremoloDepth.connect(tremoloGain.gain);
 
-  // 軽度のディストーション。量を大幅に減らす。
   const distortion = offline.createWaveShaper();
   distortion.curve = makeDistortionCurve(6);
   distortion.oversample = '2x';
 
-  // 帯域を整えるフィルター。通過帯域を少し広げて明瞭さを確保する。
   const lowpass = offline.createBiquadFilter();
   lowpass.type = 'lowpass';
   lowpass.frequency.value = 5500;
@@ -573,9 +568,6 @@ async function robotVoiceBuffer(buffer) {
    初期化
    ========================================================= */
 
-// iOSでタブがバックグラウンドから復帰した際などにAudioContextが
-// 再度suspendedになることがあるため、復帰のたびに再開を試み、
-// アンロック済みフラグもリセットして次回の再生時に再アンロックさせる。
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible' && audioCtx && audioCtx.state === 'suspended') {
     audioCtx.resume().catch(() => {});
@@ -593,4 +585,4 @@ document.addEventListener(
 
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 
-preloadAll();
+startPreload();
