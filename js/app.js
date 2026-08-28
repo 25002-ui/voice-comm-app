@@ -11,9 +11,7 @@ window.addEventListener('unhandledrejection', (e) => {
     el.textContent = 'Promiseエラー: ' + reason;
   }
 });
-
 'use strict';
-
 /* =========================================================
    音声コミュニケーションアプリ app.js
    ========================================================= */
@@ -103,17 +101,6 @@ function startPreload() {
   feedbackBufferPromise = loadAudioBuffer('assets/audio/FeedbackSound.mp3').catch((e) => {
     console.error('操作音の読み込みに失敗しました:', e);
     return null;
-  });
-
-  Promise.all(Object.values(preloadedBuffers)).then((results) => {
-    const okCount = results.filter((r) => r).length;
-    const el = document.getElementById('caption');
-    if (el) {
-      el.textContent = '読込完了: ' + okCount + '/' + results.length;
-      setTimeout(() => {
-        if (el.textContent.startsWith('読込完了')) el.textContent = '';
-      }, 2000);
-    }
   });
 }
 
@@ -597,10 +584,6 @@ document.addEventListener(
 );
 
 document.addEventListener('contextmenu', (e) => e.preventDefault());
-
-/* =========================================================
-   テーマ切替(ORIGINAL / CRYSTAL / SCRATCH)
-   ========================================================= */
 
 const THEME_STORAGE_KEY = 'ryotaSwitchTheme';
 const VALID_THEMES = ['original', 'crystal', 'scratch'];

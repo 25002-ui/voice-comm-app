@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#EA662F">
 <title>音声コミュニケーションアプリ</title>
-<link rel="stylesheet" href="css/style.css?v=13">
+<link rel="stylesheet" href="css/style.css?v=15">
 </head>
 <body data-theme="original">
   <div class="app" id="app">
@@ -37,7 +37,7 @@
           <circle cx="25" cy="20" r="1.7" fill="#7449D8"/>
         </svg>
       </button>
-      <button type="button" class="theme-icon-btn" id="qr-button" aria-label="QRコードを表示" disabled>
+      <button type="button" class="theme-icon-btn" id="qr-button" aria-label="QRコードを表示">
         <svg viewBox="0 0 40 40" width="60%" height="60%" aria-hidden="true">
           <rect x="2" y="2" width="12" height="12" fill="#fff"/>
           <rect x="5" y="5" width="6" height="6" fill="#111"/>
@@ -81,6 +81,20 @@
     </div>
   </div>
 
-  <script src="js/app.js?v=13"></script>
+  <div class="qr-modal" id="qr-modal" hidden>
+    <div class="qr-panel">
+      <button type="button" class="qr-close-btn" id="qr-close-button" aria-label="QRコードを閉じる">×</button>
+      <img
+        class="qr-image"
+        id="qr-image"
+        src="assets/icons/qrcode.png"
+        alt="QRコード"
+        onerror="this.style.display='none'; document.getElementById('qr-placeholder').style.display='flex';"
+      >
+      <div class="qr-placeholder" id="qr-placeholder">QRコード画像を配置してください</div>
+    </div>
+  </div>
+
+  <script src="js/app.js?v=16"></script>
 </body>
 </html>

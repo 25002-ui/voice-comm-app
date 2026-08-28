@@ -110,10 +110,6 @@ body {
   text-shadow: 0 0 14px rgba(255, 255, 160, 1), 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
-/* ==========================================================
-   テーマ切替スイッチャー(右上4アイコン)
-   ========================================================== */
-
 .theme-switcher {
   position: absolute;
   top: 2cqh;
@@ -184,6 +180,77 @@ body {
 .theme-icon-btn.is-locked {
   opacity: 0.5;
   pointer-events: none;
+}
+
+body.qr-open .stage,
+body.qr-open #brand-switch,
+body.qr-open .theme-switcher {
+  pointer-events: none;
+}
+
+.qr-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.qr-modal[hidden] {
+  display: none;
+}
+
+.qr-panel {
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+  padding: 3vh 3vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.qr-image {
+  display: block;
+  width: min(55vh, 55vw);
+  height: min(55vh, 55vw);
+  object-fit: contain;
+}
+
+.qr-placeholder {
+  display: none;
+  width: min(55vh, 55vw);
+  height: min(55vh, 55vw);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem;
+  color: #333;
+  font-size: 1.1rem;
+  line-height: 1.5;
+}
+
+.qr-close-btn {
+  position: absolute;
+  top: -16px;
+  right: -16px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 .caption {
