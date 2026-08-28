@@ -683,8 +683,13 @@ body.help-open .theme-switcher {
   display: none;
 }
 
-.help-panel {
+.help-frame {
   position: relative;
+  max-width: min(80vw, 700px);
+  max-height: 85vh;
+}
+
+.help-panel {
   background: #fff;
   border-radius: 20px;
   padding: 4vh 4vw;
@@ -718,8 +723,9 @@ body.help-open .theme-switcher {
 
 .help-close-btn {
   position: absolute;
-  top: -22px;
-  right: -22px;
+  top: -18px;
+  right: -18px;
+  z-index: 1;
   width: 44px;
   height: 44px;
   min-width: 44px;
