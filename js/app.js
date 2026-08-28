@@ -1,3 +1,17 @@
+window.addEventListener('error', (e) => {
+  const el = document.getElementById('caption');
+  if (el) {
+    el.textContent = 'JSエラー: ' + (e.message || '不明なエラー');
+  }
+});
+window.addEventListener('unhandledrejection', (e) => {
+  const el = document.getElementById('caption');
+  const reason = e.reason && e.reason.message ? e.reason.message : String(e.reason);
+  if (el) {
+    el.textContent = 'Promiseエラー: ' + reason;
+  }
+});
+
 'use strict';
 
 /* =========================================================
@@ -73,7 +87,7 @@ const topButtons = [
   { id: 'btn-sun', src: 'assets/audio/ohayo.mp3', gainDb: 13 },
   { id: 'btn-hand', src: 'assets/audio/otsukare.mp3', gainDb: 13 },
   { id: 'btn-finger', src: 'assets/audio/koremite.mp3', gainDb: 13 },
-  { id: 'brand-switch', src: 'assets/audio/ryotaswitch.mp3', gainDb: 5 }, // 他より-8dB
+  { id: 'brand-switch', src: 'assets/audio/ryotaswitch.mp3', gainDb: 5 },
 ];
 
 const preloadedBuffers = {};
@@ -89,6 +103,17 @@ function startPreload() {
   feedbackBufferPromise = loadAudioBuffer('assets/audio/FeedbackSound.mp3').catch((e) => {
     console.error('操作音の読み込みに失敗しました:', e);
     return null;
+  });
+
+  Promise.all(Object.values(preloadedBuffers)).then((results) => {
+    const okCount = results.filter((r) => r).length;
+    const el = document.getElementById('caption');
+    if (el) {
+      el.textContent = '読込完了: ' + okCount + '/' + results.length;
+      setTimeout(() => {
+        if (el.textContent.startsWith('読込完了')) el.textContent = '';
+      }, 2000);
+    }
   });
 }
 
@@ -220,6 +245,8 @@ topButtons.forEach((info) => {
       console.error('音源を再生できませんでした:', info.id);
       glowOff(btn);
       setAppState(STATE.IDLE);
+      showCaption('読込エラー: ' + info.id);
+      setTimeout(clearCaption, 2000);
       return;
     }
 
@@ -591,7 +618,7 @@ function getStoredTheme() {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
     if (VALID_THEMES.includes(stored)) return stored;
   } catch (e) {
-    // localStorageが使えない環境(プライベートブラウジング等)では無視し、ORIGINALから始める
+    // 無視
   }
   return 'original';
 }
@@ -608,7 +635,7 @@ function setTheme(theme) {
   try {
     window.localStorage.setItem(THEME_STORAGE_KEY, theme);
   } catch (e) {
-    // 保存できなくても致命的ではないので無視
+    // 無視
   }
 }
 
