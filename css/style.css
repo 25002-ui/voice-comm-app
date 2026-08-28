@@ -110,6 +110,83 @@ body {
   text-shadow: 0 0 14px rgba(255, 255, 160, 1), 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
+/* ==========================================================
+   テーマ切替スイッチャー(右上4アイコン)
+   ========================================================== */
+
+.theme-switcher {
+  position: absolute;
+  top: 2cqh;
+  right: 4cqw;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 1.6cqw;
+}
+
+.theme-icon-btn {
+  appearance: none;
+  border: none;
+  padding: 0;
+  width: min(6.5cqh, 7.5cqw);
+  height: min(6.5cqh, 7.5cqw);
+  min-width: 30px;
+  min-height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+  transition: box-shadow 0.15s ease, filter 0.15s ease, opacity 0.15s ease;
+}
+
+.theme-icon-btn img,
+.theme-icon-btn svg {
+  pointer-events: none;
+}
+
+.theme-icon-btn img {
+  width: 60%;
+  height: 60%;
+  object-fit: contain;
+}
+
+#theme-original {
+  background: #3d6540;
+}
+
+#theme-crystal {
+  background: radial-gradient(circle at 35% 30%, #e2082d 0%, #830018 70%, #39000d 100%);
+}
+
+#theme-scratch {
+  background: #4c97ff;
+}
+
+#qr-button {
+  background: #1a1a1a;
+}
+
+.theme-icon-btn[aria-pressed='true'] {
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 10px 3px rgba(180, 220, 255, 0.9);
+}
+
+.theme-icon-btn:disabled {
+  opacity: 0.35;
+  filter: grayscale(0.5);
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* 再生中・録音中は(実装済みのボタンも含めて)一時的に操作不能にする */
+.theme-icon-btn.is-locked {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
 .caption {
   width: 100%;
   max-width: 900px;
