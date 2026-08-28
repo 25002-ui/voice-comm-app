@@ -21,7 +21,7 @@ html, body {
   height: 100%;
   overflow: hidden;
   overscroll-behavior: none;
-  background: #F68155;
+  background: #EA662F;
   touch-action: none;
 }
 
@@ -37,7 +37,7 @@ body {
   width: 100%;
   height: 100dvh;
   container-type: size;
-  background: #F68155;
+  background: #EA662F;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -144,9 +144,9 @@ body {
   width: min(26cqh, 28cqw);
   height: min(26cqh, 28cqw);
   border-radius: 18%;
-  background: #007442;
+  background: #3D6540;
   box-shadow:
-    0 10px 0 #00321c,
+    0 10px 0 #263F28,
     0 14px 20px rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
@@ -168,7 +168,7 @@ body {
 .btn.is-pressed {
   transform: translateY(8px);
   box-shadow:
-    0 2px 0 #00321c,
+    0 2px 0 #263F28,
     0 4px 8px rgba(0, 0, 0, 0.4);
   filter: brightness(0.92);
 }
@@ -180,13 +180,13 @@ body {
 @keyframes pulse-glow {
   0%, 100% {
     box-shadow:
-      0 10px 0 #00321c,
+      0 10px 0 #263F28,
       0 0 14px 8px rgba(255, 255, 120, 0.75),
       0 12px 24px rgba(0, 0, 0, 0.45);
   }
   50% {
     box-shadow:
-      0 10px 0 #00321c,
+      0 10px 0 #263F28,
       0 0 30px 18px rgba(255, 255, 160, 1),
       0 12px 24px rgba(0, 0, 0, 0.55);
   }
