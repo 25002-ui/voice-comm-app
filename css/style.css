@@ -210,8 +210,10 @@ body.qr-open .theme-switcher {
   border-radius: 20px;
   padding: 3vh 3vw;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 1.2vh;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
@@ -233,6 +235,17 @@ body.qr-open .theme-switcher {
   color: #333;
   font-size: 1.1rem;
   line-height: 1.5;
+}
+
+.qr-link {
+  display: block;
+  max-width: min(55vh, 55vw);
+  color: #1a56db;
+  text-decoration: underline;
+  font-size: clamp(12px, 2vh, 16px);
+  text-align: center;
+  word-break: break-all;
+  cursor: pointer;
 }
 
 .qr-close-btn {
