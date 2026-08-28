@@ -23,17 +23,6 @@ const MIN_RECORD_MS = 300;
 let audioCtx = null;
 let audioUnlocked = false;
 
-/*
- * iOS(Safari/Chrome共通のWebKitエンジン)では、AudioContextが
- * resume() を呼ぶだけでは「running」状態まで確実に復帰しないことがある。
- * 以前は「window全体のタップ」を監視して別途アンロックしていたが、
- * イベントの発火順序上、ボタン自身の再生処理より後に実行されてしまい、
- * 「1回目は鳴らず、他のボタンを押した後になってようやく鳴る」という
- * 不具合が起きていた。
- *
- * これを防ぐため、実際に音を鳴らす直前に呼ばれるgetAudioContext()自体の中で、
- * 同じ一連の処理(=同じユーザー操作)の中で確実にアンロックを行う。
- */
 function getAudioContext() {
   if (!audioCtx) {
     const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -42,27 +31,48 @@ function getAudioContext() {
   if (audioCtx.state === 'suspended') {
     audioCtx.resume().catch(() => {});
   }
+  return audioCtx;
+}
+
+/*
+ * 実際に音を鳴らす直前に必ず呼ぶ。
+ * これまでの実装は resume() の完了を待たずに次の処理へ進んでしまい、
+ * 「解錠が終わる前に本来鳴らしたい音のstart(0)が呼ばれてしまう」
+ * という処理の順序不備があった(resume()は完了まで一瞬時間がかかる非同期処理のため)。
+ * ここでは resume() の完了を確実に待ってから、無音バッファでの
+ * 追加アンロックを行うことで、初回タップでも確実に音が鳴るようにする。
+ */
+async function ensureAudioReady() {
+  const ctx = getAudioContext();
+  if (ctx.state !== 'running') {
+    try {
+      await ctx.resume();
+    } catch (e) {
+      // 無視(既に解決済み等のケース)
+    }
+  }
   if (!audioUnlocked) {
     try {
-      const silentBuffer = audioCtx.createBuffer(1, 1, 22050);
-      const silentSource = audioCtx.createBufferSource();
+      const silentBuffer = ctx.createBuffer(1, 1, 22050);
+      const silentSource = ctx.createBufferSource();
       silentSource.buffer = silentBuffer;
-      silentSource.connect(audioCtx.destination);
+      silentSource.connect(ctx.destination);
       silentSource.start(0);
     } catch (e) {
       console.error('音声の初期化(アンロック)に失敗しました:', e);
     }
-    if (audioCtx.state === 'running') {
+    if (ctx.state === 'running') {
       audioUnlocked = true;
     }
   }
-  return audioCtx;
+  return ctx;
 }
 
 const topButtons = [
   { id: 'btn-sun', src: 'assets/audio/ohayo.mp3' },
   { id: 'btn-hand', src: 'assets/audio/otsukare.mp3' },
   { id: 'btn-finger', src: 'assets/audio/koremite.mp3' },
+  { id: 'brand-switch', src: 'assets/audio/ryotaswitch.mp3' },
 ];
 
 const preloadedBuffers = {};
@@ -110,8 +120,8 @@ async function preloadAll() {
  * 「再生時間+余裕」を過ぎても呼ばれなければ強制的に終了扱いにする
  * セーフティタイマーを設けている。
  */
-function playBufferWithGain(buffer, gainDb, onEnded) {
-  const ctx = getAudioContext();
+async function playBufferWithGain(buffer, gainDb, onEnded) {
+  const ctx = await ensureAudioReady();
   const src = ctx.createBufferSource();
   src.buffer = buffer;
 
@@ -204,7 +214,7 @@ function glowOff(btn) {
   clearCaption();
 }
 
-/* ---------- 上段ボタン ---------- */
+/* ---------- 上段ボタン(りょうたスイッチ含む) ---------- */
 
 topButtons.forEach((info) => {
   const btn = document.getElementById(info.id);

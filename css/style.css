@@ -83,19 +83,31 @@ body {
   gap: 1.5cqh;
 }
 
-.brand {
+#brand-switch {
   position: absolute;
   top: 2cqh;
   left: 3cqw;
   z-index: 2;
+  width: auto;
+  height: auto;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  border-radius: 0;
+  cursor: pointer;
   color: #fff;
   font-family: 'Palette Mosaic', sans-serif;
   font-weight: 400;
   font-size: calc((min(2.1cqh, 2.4cqw) + 7px) * 2);
   line-height: 1.2;
-  text-align: center;
+  text-align: left;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
-  pointer-events: none;
+}
+
+#brand-switch.is-glow {
+  animation: none;
+  text-shadow: 0 0 14px rgba(255, 255, 160, 1), 0 1px 2px rgba(0, 0, 0, 0.45);
 }
 
 .caption {
