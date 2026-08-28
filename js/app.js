@@ -73,10 +73,10 @@ const topButtons = [
   { id: 'btn-sun', src: 'assets/audio/ohayo.mp3', gainDb: 13 },
   { id: 'btn-hand', src: 'assets/audio/otsukare.mp3', gainDb: 13 },
   { id: 'btn-finger', src: 'assets/audio/koremite.mp3', gainDb: 13 },
-  { id: 'brand-switch', src: 'assets/audio/ryotaswitch.mp3', gainDb: 10 }, // 他より-3dB
+  { id: 'brand-switch', src: 'assets/audio/ryotaswitch.mp3', gainDb: 5 }, // 他より-8dB
 ];
 
-const preloadedBuffers = {}; // id -> Promise<AudioBuffer | null>
+const preloadedBuffers = {};
 let feedbackBufferPromise = null;
 
 function startPreload() {
