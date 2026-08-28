@@ -543,16 +543,16 @@ body.qr-open .theme-switcher {
 
 [data-theme='scratch'] html,
 [data-theme='scratch'] body {
-  background: #eaf3ff;
+  background: #7449d8;
 }
 
 [data-theme='scratch'] .app {
-  background: #eaf3ff;
+  background: linear-gradient(160deg, #b39dff 0%, #9966ff 45%, #7449d8 100%);
 }
 
 [data-theme='scratch'] .app::before {
   box-shadow: none;
-  background-image: radial-gradient(circle, rgba(90, 140, 220, 0.16) 1px, transparent 1.6px);
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.14) 1px, transparent 1.6px);
   background-size: 18px 18px;
 }
 
@@ -607,6 +607,7 @@ body.qr-open .theme-switcher {
 [data-theme='scratch'] .btn {
   border-radius: 14px;
   clip-path: none;
+  border: 3px solid rgba(255, 255, 255, 0.85);
   background: linear-gradient(180deg, #b39dff 0%, #9966ff 55%, #7449d8 100%);
   box-shadow:
     0 6px 0 #5c34b0,
@@ -655,7 +656,8 @@ body.qr-open .theme-switcher {
    ========================================================== */
 
 .help-btn {
-  background: #1a1a1a;
+  background: #fff;
+  border: 2px solid #1a1a1a;
 }
 
 body.help-open .stage,
@@ -692,6 +694,12 @@ body.help-open .theme-switcher {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
+.help-content .help-title {
+  margin: 0 0 0.6em 0;
+  font-size: clamp(18px, 3vh, 26px);
+  font-weight: 700;
+}
+
 .help-content p {
   margin: 0 0 1em 0;
   color: #1a1a1a;
@@ -706,7 +714,7 @@ body.help-open .theme-switcher {
 .help-close-btn {
   position: absolute;
   top: -16px;
-  left: -16px;
+  right: -16px;
   width: 44px;
   height: 44px;
   min-width: 44px;
