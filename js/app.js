@@ -578,6 +578,7 @@ document.addEventListener('visibilitychange', () => {
 document.addEventListener(
   'touchmove',
   (e) => {
+    if (e.target.closest('.help-panel')) return;
     e.preventDefault();
   },
   { passive: false }

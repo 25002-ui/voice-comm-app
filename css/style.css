@@ -157,7 +157,7 @@ body {
 }
 
 #theme-scratch {
-  background: #4c97ff;
+  background: #9966ff;
 }
 
 #qr-button {
@@ -691,19 +691,24 @@ body.help-open .theme-switcher {
   max-width: min(80vw, 700px);
   max-height: 85vh;
   overflow-y: auto;
+  touch-action: pan-y;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.help-content {
+  font-family: -apple-system, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Yu Gothic', Meiryo, sans-serif;
 }
 
 .help-content .help-title {
   margin: 0 0 0.6em 0;
-  font-size: clamp(18px, 3vh, 26px);
+  font-size: clamp(16px, 3vh, 24px);
   font-weight: 700;
 }
 
 .help-content p {
   margin: 0 0 1em 0;
   color: #1a1a1a;
-  font-size: clamp(14px, 2.4vh, 20px);
+  font-size: clamp(12px, 2.4vh, 18px);
   line-height: 1.6;
 }
 
@@ -713,8 +718,8 @@ body.help-open .theme-switcher {
 
 .help-close-btn {
   position: absolute;
-  top: -16px;
-  right: -16px;
+  top: -22px;
+  right: -22px;
   width: 44px;
   height: 44px;
   min-width: 44px;
