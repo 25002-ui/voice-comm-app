@@ -650,3 +650,40 @@ document.querySelectorAll('[data-theme-target]').forEach((btn) => {
 setTheme(getStoredTheme());
 
 startPreload();
+
+/* =========================================================
+   QRコードモーダル
+   ========================================================= */
+
+const qrModal = document.getElementById('qr-modal');
+const qrButton = document.getElementById('qr-button');
+const qrCloseButton = document.getElementById('qr-close-button');
+
+function openQrModal() {
+  if (!qrModal || !qrButton || qrButton.disabled) return;
+  document.body.classList.add('qr-open');
+  qrModal.hidden = false;
+}
+
+function closeQrModal() {
+  if (!qrModal) return;
+  document.body.classList.remove('qr-open');
+  qrModal.hidden = true;
+}
+
+if (qrButton) {
+  qrButton.addEventListener('click', () => {
+    if (document.body.classList.contains('qr-open')) return;
+    openQrModal();
+  });
+}
+
+if (qrCloseButton) {
+  qrCloseButton.addEventListener('click', closeQrModal);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.body.classList.contains('qr-open')) {
+    closeQrModal();
+  }
+});
