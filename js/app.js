@@ -23,21 +23,6 @@ const MIN_RECORD_MS = 300;
 let audioCtx = null;
 let audioUnlocked = false;
 
-/*
- * iOSでは、ユーザーが一度も画面に触れる前に AudioContext を
- * 作成してしまうと、その後どれだけ resume() を呼んでも
- * 完全には音声が有効化されないことがある(既知の制約)。
- *
- * これまでは音源の事前読み込み(ページを開いた直後、まだ画面に
- * 触れる前に実行される)の際に、実際の再生用AudioContextを
- * 使い回してしまっていたため、この制約に引っかかっていた可能性が高い。
- *
- * そこで、音声ファイルの「デコード(読み込み)専用」のAudioContextと、
- * 実際に音を鳴らす「再生専用」のAudioContextを完全に分離する。
- * デコード専用の方はいつ作っても問題ない。再生専用の方(audioCtx)は、
- * ユーザーが実際にボタンを押した瞬間(=ensureAudioReady()が
- * 呼ばれた瞬間)に初めて作成する。
- */
 let decodeCtx = null;
 function getDecodeContext() {
   if (!decodeCtx) {
@@ -58,10 +43,6 @@ function getAudioContext() {
   return audioCtx;
 }
 
-/*
- * 実際に音を鳴らす直前に必ず呼ぶ。resume() の完了を確実に待ってから、
- * 無音バッファでの追加アンロックを行う。
- */
 async function ensureAudioReady() {
   const ctx = getAudioContext();
   if (ctx.state !== 'running') {
@@ -111,7 +92,6 @@ function startPreload() {
   });
 }
 
-// 音量調整(dB)。上3ボタン・下3ボタン(加工済み録音)は基本+13dB(りょうたスイッチのみ+10dB)、操作音「ピコッ」は-6dB。
 const GAIN_DB_VOICE = 13;
 const GAIN_DB_FEEDBACK = -6;
 
@@ -196,6 +176,7 @@ function setAppState(state, buttonId) {
   appState = state;
   activeButtonId = buttonId || null;
   updateButtonDisabled();
+  updateThemeButtonsLocked();
 }
 
 function updateButtonDisabled() {
@@ -255,12 +236,12 @@ topButtons.forEach((info) => {
 
 /* ---------- 下段ボタン ---------- */
 
-const recordedBuffers = {}; // buttonId -> AudioBuffer (加工済み)
+const recordedBuffers = {};
 let micStream = null;
 let micRequested = false;
 
 const bottomIds = ['btn-1', 'btn-2', 'btn-3'];
-const pressInfo = {}; // buttonId -> { timerId, startTime, longPressed, mediaRecorder, chunks }
+const pressInfo = {};
 
 bottomIds.forEach((id) => {
   const btn = document.getElementById(id);
@@ -293,7 +274,6 @@ bottomIds.forEach((id) => {
     btn.classList.remove('is-pressed');
 
     if (appState === STATE.PRESSING && !info.longPressed) {
-      // 短押し
       clearTimeout(info.timerId);
       setAppState(STATE.IDLE);
       const existing = recordedBuffers[id];
@@ -305,7 +285,6 @@ bottomIds.forEach((id) => {
           setAppState(STATE.IDLE);
         });
       }
-      // 未録音なら何もしない(音もエラーも出さない)
       return;
     }
 
@@ -326,7 +305,7 @@ async function startLongPress(id, btn) {
       micRequested = true;
     } catch (err) {
       console.error('マイクの利用が許可されませんでした:', err);
-      micRequested = true; // 再度プロンプトを出さない
+      micRequested = true;
       setAppState(STATE.IDLE);
       return;
     }
@@ -388,7 +367,6 @@ function stopRecording(id, btn) {
 
   info.mediaRecorder.onstop = async () => {
     if (duration < MIN_RECORD_MS) {
-      // 短すぎる録音は破棄。既存の録音があれば維持。
       setAppState(STATE.IDLE);
       return;
     }
@@ -400,7 +378,7 @@ function stopRecording(id, btn) {
       const decoded = await ctx.decodeAudioData(arrayBuffer);
       const effect = btn.dataset.effect;
       const processed = await applyEffect(decoded, effect);
-      recordedBuffers[id] = processed; // 正常終了時のみ上書き
+      recordedBuffers[id] = processed;
     } catch (err) {
       console.error('音声の加工に失敗しました。以前の録音を維持します:', err);
     } finally {
@@ -593,4 +571,53 @@ document.addEventListener(
 
 document.addEventListener('contextmenu', (e) => e.preventDefault());
 
-startPreload();
+/* =========================================================
+   テーマ切替(ORIGINAL / CRYSTAL / SCRATCH)
+   ========================================================= */
+
+const THEME_STORAGE_KEY = 'ryotaSwitchTheme';
+const VALID_THEMES = ['original', 'crystal', 'scratch'];
+const themeButtons = Array.from(document.querySelectorAll('.theme-icon-btn'));
+
+function updateThemeButtonsLocked() {
+  const busy = appState !== STATE.IDLE;
+  themeButtons.forEach((btn) => {
+    btn.classList.toggle('is-locked', busy);
+  });
+}
+
+function getStoredTheme() {
+  try {
+    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (VALID_THEMES.includes(stored)) return stored;
+  } catch (e) {
+    // localStorageが使えない環境(プライベートブラウジング等)では無視し、ORIGINALから始める
+  }
+  return 'original';
+}
+
+function setTheme(theme) {
+  if (!VALID_THEMES.includes(theme)) return;
+  document.body.dataset.theme = theme;
+  themeButtons.forEach((btn) => {
+    const target = btn.dataset.themeTarget;
+    if (target) {
+      btn.setAttribute('aria-pressed', target === theme ? 'true' : 'false');
+    }
+  });
+  try {
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch (e) {
+    // 保存できなくても致命的ではないので無視
+  }
+}
+
+document.querySelectorAll('[data-theme-target]').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    if (appState !== STATE.IDLE) return;
+    if (btn.disabled) return;
+    setTheme(btn.dataset.themeTarget);
+  });
+});
+
+setTheme(getStoredTheme());
