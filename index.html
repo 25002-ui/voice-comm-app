@@ -8,7 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#EA662F">
 <title>音声コミュニケーションアプリ</title>
-<link rel="stylesheet" href="css/style.css?v=17">
+<link rel="stylesheet" href="css/style.css?v=18">
 </head>
 <body data-theme="original">
   <div class="app" id="app">
@@ -50,6 +50,11 @@
           <rect x="18" y="24" width="4" height="4" fill="#fff"/>
           <rect x="30" y="24" width="4" height="4" fill="#fff"/>
           <rect x="18" y="30" width="4" height="4" fill="#fff"/>
+        </svg>
+      </button>
+      <button type="button" class="theme-icon-btn help-btn" id="help-button" aria-label="使い方を表示">
+        <svg viewBox="0 0 40 40" width="60%" height="60%" aria-hidden="true">
+          <text x="20" y="29" font-size="26" font-weight="bold" text-anchor="middle" fill="#fff" font-family="sans-serif">?</text>
         </svg>
       </button>
     </div>
@@ -95,6 +100,19 @@
     </div>
   </div>
 
-  <script src="js/app.js?v=16"></script>
+  <div class="help-modal" id="help-modal" hidden>
+    <div class="help-panel">
+      <button type="button" class="help-close-btn" id="help-close-button" aria-label="使い方を閉じる">×</button>
+      <div class="help-content">
+        <p>・上の3つのボタン:押すと左から「おはよう」「おつかれさま」「これみて」と森川くんの声が流れます。話しかけるきっかけになります。</p>
+        <p>・下の3つのボタン:少し長押しすると録音でき、その後短く押すと加工した声で再生されます。お話を続けたいときに使ってみてください。</p>
+        <p>・右上の左から3つのボタン:見た目のデザインを切り替えられます。左から「試作品風」「M-1グランプリ風」「Scratch風」です。</p>
+        <p>・右上の一番右のボタン:押すと森川くんのScratchページのQRコードが表示されます。「これみて」で話しかけた後に見せてみてください。</p>
+        <p>・左上のロゴ(隠しボタン):押すと森川くんの好きな声が流れます。</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js?v=17"></script>
 </body>
 </html>

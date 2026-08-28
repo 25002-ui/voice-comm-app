@@ -556,18 +556,6 @@ body.qr-open .theme-switcher {
   background-size: 18px 18px;
 }
 
-[data-theme='scratch'] .app::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 11cqh;
-  min-height: 60px;
-  background: linear-gradient(180deg, #9966ff 0%, #855cd6 55%, #7449d8 100%);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-}
-
 [data-theme='scratch'] #brand-switch {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
@@ -616,51 +604,19 @@ body.qr-open .theme-switcher {
   border-top-color: rgba(116, 73, 216, 0.4);
 }
 
-/* ボタンの配色(Scratchカテゴリー色) */
-[data-theme='scratch'] #btn-sun {
-  --c1: #7eb8ff;
-  --c2: #4c97ff;
-  --c3: #2e7ce0;
-}
-[data-theme='scratch'] #btn-hand {
-  --c1: #bfa3ff;
-  --c2: #9966ff;
-  --c3: #7a47e0;
-}
-[data-theme='scratch'] #btn-finger {
-  --c1: #e39bc7;
-  --c2: #cf63a9;
-  --c3: #b4488c;
-}
-[data-theme='scratch'] #btn-1 {
-  --c1: #ffc670;
-  --c2: #ffab19;
-  --c3: #e08800;
-}
-[data-theme='scratch'] #btn-2 {
-  --c1: #ffd966;
-  --c2: #ffbf00;
-  --c3: #e0a500;
-}
-[data-theme='scratch'] #btn-3 {
-  --c1: #7eb8ff;
-  --c2: #4c97ff;
-  --c3: #2e7ce0;
-}
-
 [data-theme='scratch'] .btn {
   border-radius: 14px;
   clip-path: none;
-  background: linear-gradient(180deg, var(--c1) 0%, var(--c2) 55%, var(--c3) 100%);
+  background: linear-gradient(180deg, #b39dff 0%, #9966ff 55%, #7449d8 100%);
   box-shadow:
-    0 6px 0 var(--c3),
+    0 6px 0 #5c34b0,
     0 10px 16px rgba(0, 0, 0, 0.25);
 }
 
 [data-theme='scratch'] .btn.is-pressed {
   transform: translateY(4px) scale(0.97);
   box-shadow:
-    0 2px 0 var(--c3),
+    0 2px 0 #5c34b0,
     0 4px 8px rgba(0, 0, 0, 0.2);
   filter: brightness(1.05);
 }
@@ -672,13 +628,13 @@ body.qr-open .theme-switcher {
 @keyframes scratch-pulse {
   0%, 100% {
     box-shadow:
-      0 6px 0 var(--c3),
+      0 6px 0 #5c34b0,
       0 0 0 3px rgba(255, 255, 255, 0.9),
       0 10px 16px rgba(0, 0, 0, 0.25);
   }
   50% {
     box-shadow:
-      0 6px 0 var(--c3),
+      0 6px 0 #5c34b0,
       0 0 0 6px rgba(255, 255, 255, 0.95),
       0 10px 16px rgba(0, 0, 0, 0.25);
   }
@@ -692,4 +648,75 @@ body.qr-open .theme-switcher {
   box-shadow:
     0 0 0 3px #fff,
     0 0 10px 3px rgba(124, 77, 255, 0.7);
+}
+
+/* ==========================================================
+   ヘルプ(？)モーダル
+   ========================================================== */
+
+.help-btn {
+  background: #1a1a1a;
+}
+
+body.help-open .stage,
+body.help-open #brand-switch,
+body.help-open .theme-switcher {
+  pointer-events: none;
+}
+
+.help-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  padding: 4vh 4vw;
+}
+
+.help-modal[hidden] {
+  display: none;
+}
+
+.help-panel {
+  position: relative;
+  background: #fff;
+  border-radius: 20px;
+  padding: 4vh 4vw;
+  max-width: min(80vw, 700px);
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.help-content p {
+  margin: 0 0 1em 0;
+  color: #1a1a1a;
+  font-size: clamp(14px, 2.4vh, 20px);
+  line-height: 1.6;
+}
+
+.help-content p:last-child {
+  margin-bottom: 0;
+}
+
+.help-close-btn {
+  position: absolute;
+  top: -16px;
+  left: -16px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 26px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }

@@ -670,3 +670,40 @@ document.addEventListener('keydown', (e) => {
     closeQrModal();
   }
 });
+
+/* =========================================================
+   ヘルプ(？)モーダル
+   ========================================================= */
+
+const helpModal = document.getElementById('help-modal');
+const helpButton = document.getElementById('help-button');
+const helpCloseButton = document.getElementById('help-close-button');
+
+function openHelpModal() {
+  if (!helpModal || !helpButton || helpButton.disabled) return;
+  document.body.classList.add('help-open');
+  helpModal.hidden = false;
+}
+
+function closeHelpModal() {
+  if (!helpModal) return;
+  document.body.classList.remove('help-open');
+  helpModal.hidden = true;
+}
+
+if (helpButton) {
+  helpButton.addEventListener('click', () => {
+    if (document.body.classList.contains('help-open')) return;
+    openHelpModal();
+  });
+}
+
+if (helpCloseButton) {
+  helpCloseButton.addEventListener('click', closeHelpModal);
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.body.classList.contains('help-open')) {
+    closeHelpModal();
+  }
+});
