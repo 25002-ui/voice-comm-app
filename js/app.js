@@ -621,3 +621,5 @@ document.querySelectorAll('[data-theme-target]').forEach((btn) => {
 });
 
 setTheme(getStoredTheme());
+
+startPreload();
