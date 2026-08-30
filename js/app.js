@@ -578,7 +578,7 @@ document.addEventListener('visibilitychange', () => {
 document.addEventListener(
   'touchmove',
   (e) => {
-    if (e.target.closest('.help-panel')) return;
+    if (e.target.closest('.help-panel') || e.target.closest('.qr-link')) return;
     e.preventDefault();
   },
   { passive: false }

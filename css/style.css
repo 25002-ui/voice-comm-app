@@ -246,6 +246,10 @@ body.qr-open .theme-switcher {
   text-align: center;
   word-break: break-all;
   cursor: pointer;
+  user-select: text;
+  -webkit-user-select: text;
+  -webkit-touch-callout: default;
+  touch-action: auto;
 }
 
 .qr-close-btn {
